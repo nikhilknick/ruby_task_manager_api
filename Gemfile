@@ -49,4 +49,12 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 
   gem 'rspec-rails'
+
+  gem 'factory_bot_rails'
+
+  gem 'bcrypt', '~> 3.1.7'
+
+  gem 'shoulda-matchers'
+
+  gem 'database_cleaner-active_record'
 end
