@@ -132,4 +132,105 @@ RSpec.describe "Tasks API", type: :request do
       expect(body["meta"]["total_count"]).to eq(15)
     end
   end
+
+  # filtering by status spec
+  describe "Filtering by status" do
+    before do
+      create(:task, user: user, status: "completed", title: "Done task")
+      create(:task, user: user, status: "todo", title: "Todo task")
+    end
+  
+    it "returns only tasks with given status" do
+      get "/tasks", params: { status: "completed" }, headers: headers
+  
+      body = JSON.parse(response.body)
+  
+      expect(response).to have_http_status(:ok)
+      expect(body["data"].length).to eq(1)
+      expect(body["data"].first["status"]).to eq("completed")
+    end
+  end
+
+  # filtering by priority spec
+  describe "Filtering by priority" do
+    before do
+      create(:task, user: user, priority: "high", title: "High priority")
+      create(:task, user: user, priority: "low", title: "Low priority")
+    end
+  
+    it "returns only tasks with given priority" do
+      get "/tasks", params: { priority: "high" }, headers: headers
+  
+      body = JSON.parse(response.body)
+  
+      expect(response).to have_http_status(:ok)
+      expect(body["data"].length).to eq(1)
+      expect(body["data"].first["priority"]).to eq("high")
+    end
+  end
+
+  # search by title spec
+  describe "Search by title" do
+    before do
+      create(:task, user: user, title: "Deploy backend")
+      create(:task, user: user, title: "Fix UI bugs")
+    end
+  
+    it "returns tasks matching search query" do
+      get "/tasks", params: { q: "deploy" }, headers: headers
+  
+      body = JSON.parse(response.body)
+  
+      expect(response).to have_http_status(:ok)
+      expect(body["data"].length).to eq(1)
+      expect(body["data"].first["title"]).to include("Deploy")
+    end
+  end
+
+  # sorting tasks spec
+  describe "Sorting tasks" do
+    before do
+      create(:task, user: user, priority: "low", title: "Low priority")
+      create(:task, user: user, priority: "high", title: "High priority")
+    end
+  
+    it "sorts tasks by priority ascending" do
+      get "/tasks",
+          params: { sort_by: "priority", order: "asc" },
+          headers: headers
+  
+      body = JSON.parse(response.body)
+      priorities = body["data"].map { |t| t["priority"] }
+  
+      expect(response).to have_http_status(:ok)
+      expect(priorities).to eq(%w[low high])
+    end
+  end
+
+  # TaskSerializer spec
+  describe "TaskSerializer" do
+    it "returns consistent task attributes" do
+      task = create(:task, user: user)
+  
+      get "/tasks/#{task.id}", headers: headers
+  
+      body = JSON.parse(response.body)
+  
+      expect(body.keys).to contain_exactly(
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "created_at",
+        "updated_at"
+      )
+    end
+  end
+  
+  
+  
+  
+  
 end
