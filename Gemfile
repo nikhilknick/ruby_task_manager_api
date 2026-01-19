@@ -64,5 +64,9 @@ group :development, :test do
 
   gem 'jwt'
 
+  gem 'kaminari' 
+
+  gem 'active_model_serializers', '~> 0.10.0'
+
 
 end
