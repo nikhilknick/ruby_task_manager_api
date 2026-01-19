@@ -2,8 +2,8 @@ FactoryBot.define do
     factory :task do
       title { "Test Task" }
       description { "Task description" }
-      status { "pending" }
-      priority { 1 }
+      status { :todo }
+      priority { :medium }
       due_date { Date.today + 1.day }
       association :user
   
