@@ -70,5 +70,13 @@ group :development, :test do
 
   gem "sidekiq"
 
+  gem "rswag"
+
+  gem "rswag-api"
+
+  gem "rswag-ui"
+  
+  gem "rswag-specs"
+
 
 end
