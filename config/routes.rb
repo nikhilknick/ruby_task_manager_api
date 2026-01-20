@@ -1,3 +1,5 @@
+require "sidekiq/web"
+
 Rails.application.routes.draw do
   post "/signup", to: "users#create"
   post "/login", to: "sessions#create"
@@ -10,5 +12,8 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
+  mount Sidekiq::Web => "/sidekiq"
+
   resources :tasks
+
 end

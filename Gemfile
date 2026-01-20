@@ -68,5 +68,7 @@ group :development, :test do
 
   gem 'active_model_serializers', '~> 0.10.0'
 
+  gem "sidekiq"
+
 
 end
