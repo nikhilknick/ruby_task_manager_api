@@ -63,6 +63,14 @@ RSpec.describe "Tasks API", type: :request do
       expect(body["priority"]).to eq("low")
     end
 
+    it "enqueues email job on task creation" do
+      expect {
+        post "/tasks",
+             params: { task: attributes_for(:task) },
+             headers: headers
+      }.to have_enqueued_job(TaskNotificationJob)
+    end
+
     it "returns 422 for invalid task" do
       post "/tasks",
            params: {
