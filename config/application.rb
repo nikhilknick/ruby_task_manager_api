@@ -38,6 +38,5 @@ module TaskManagerApi
                       key: "_task_manager_api_session",
                       same_site: :lax
 
-
   end
 end

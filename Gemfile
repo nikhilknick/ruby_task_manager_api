@@ -35,6 +35,10 @@ gem "image_processing", "~> 1.2"
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 
+gem 'kaminari' 
+
+gem "active_model_serializers", "~> 0.10.14"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
@@ -60,15 +64,11 @@ group :development, :test do
 
   gem 'simplecov', require: false
 
-  gem 'bcrypt', '~> 3.1.7'
-
   gem 'jwt'
 
-  gem 'kaminari' 
-
-  gem 'active_model_serializers', '~> 0.10.0'
-
   gem "sidekiq"
+  
+  gem "redis", "~> 5.0"
 
   gem "rswag"
 

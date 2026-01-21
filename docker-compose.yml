@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: task_manager_api_web
+    command: ./bin/rails server -b 0.0.0.0 -p 80
+    ports:
+      - "3000:80"
+    environment:
+      - RAILS_ENV=development
+      - PORT=80
+      - DATABASE_URL=postgresql://postgres:password@db:5432/task_manager_api_development
+      - REDIS_URL=redis://redis:6379/0
+      - TASK_MANAGER_API_DATABASE_PASSWORD=password
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  sidekiq:
+    build: .
+    container_name: task_manager_api_sidekiq
+    command: bundle exec sidekiq
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgresql://postgres:password@db:5432/task_manager_api_development
+      - REDIS_URL=redis://redis:6379/0
+      - TASK_MANAGER_API_DATABASE_PASSWORD=password
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15
+    container_name: task_manager_api_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: task_manager_api_development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: task_manager_api_redis
+
+volumes:
+  postgres_data:

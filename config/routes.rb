@@ -1,8 +1,11 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
-  mount Rswag::Ui::Engine => '/api-docs'
-  mount Rswag::Api::Engine => '/api-docs'
+  if Rails.env.development? || Rails.env.test?
+    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Api::Engine => '/api-docs'
+  end
+  get "/health", to: "health#show"
   post "/signup", to: "users#create"
   post "/login", to: "sessions#create"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
