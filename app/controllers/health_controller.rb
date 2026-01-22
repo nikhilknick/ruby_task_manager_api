@@ -21,9 +21,14 @@ class HealthController < ApplicationController
           true
         end
       end
-    rescue Timeout::Error, PG::ConnectionBad, ActiveRecord::ConnectionNotEstablished => e
+    rescue Timeout::Error => e
+      Rails.logger.error "Database health check timeout: #{e.message}"
+      false
+    rescue PG::ConnectionBad, ActiveRecord::ConnectionNotEstablished => e
+      Rails.logger.error "Database connection error: #{e.message}"
       false
     rescue => e
+      Rails.logger.error "Database health check error: #{e.class} - #{e.message}"
       false
     end
   
