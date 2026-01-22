@@ -69,8 +69,8 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
+# Start server - use Puma directly when PORT is set (Render), otherwise use Thruster (Kamal)
 # Puma config (config/puma.rb) handles binding to 0.0.0.0 and PORT env var
-# Render will automatically detect the port from the listening process
+# Render automatically sets PORT, so we use Puma directly for better compatibility
 EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+CMD ["./bin/start-server"]

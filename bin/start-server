@@ -1,0 +1,10 @@
+#!/bin/bash
+# Start server script - uses Puma directly when PORT is set (Render), otherwise uses Thruster (Kamal)
+
+if [ -n "$PORT" ]; then
+  # Render sets PORT, so use Puma directly
+  exec bundle exec puma -C config/puma.rb
+else
+  # Kamal/other deployments use Thruster
+  exec ./bin/thrust ./bin/rails server
+fi
