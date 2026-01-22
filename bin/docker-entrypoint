@@ -3,7 +3,17 @@
 # If running the rails server then create or migrate existing database
 # Check if the command contains "./bin/rails" and "server"
 if [[ "$*" == *"./bin/rails"* ]] && [[ "$*" == *"server"* ]]; then
+  # Try to prepare database, but don't fail the entire startup if it's not available yet
+  # This allows the server to start even if DB connection fails initially
+  # Render needs the server to start to detect the port
+  set +e  # Temporarily disable exit on error
   ./bin/rails db:prepare
+  db_status=$?
+  set -e  # Re-enable exit on error
+  if [ $db_status -ne 0 ]; then
+    echo "Warning: Database preparation failed (exit code $db_status), but continuing to start server..."
+    echo "The server will start, but database operations may fail until the connection is established."
+  fi
 fi
 
 exec "${@}"
