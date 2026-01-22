@@ -16,6 +16,6 @@ class ApplicationController < ActionController::API
   end
 
   def public_endpoint?
-    controller_name.in?(%w[health users sessions])
+    controller_name.in?(%w[health users sessions admin])
   end
 end
