@@ -7,13 +7,20 @@ if [[ "$*" == *"./bin/rails"* ]] && [[ "$*" == *"server"* ]]; then
   # This allows the server to start even if DB connection fails initially
   # Render needs the server to start to detect the port
   set +e  # Temporarily disable exit on error
+  
+  echo "Running database migrations..."
   ./bin/rails db:prepare
   db_status=$?
-  set -e  # Re-enable exit on error
-  if [ $db_status -ne 0 ]; then
+  
+  if [ $db_status -eq 0 ]; then
+    echo "Database migrations completed successfully."
+  else
     echo "Warning: Database preparation failed (exit code $db_status), but continuing to start server..."
-    echo "The server will start, but database operations may fail until the connection is established."
+    echo "The server will start, but database operations may fail until migrations are run."
+    echo "Run 'bundle exec rails db:migrate' manually if needed."
   fi
+  
+  set -e  # Re-enable exit on error
 fi
 
 exec "${@}"
