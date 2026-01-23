@@ -69,18 +69,18 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    # Render automatically provides DATABASE_URL when you add a PostgreSQL database
-    # This must be set - no fallback to avoid connecting to wrong hostname
-    url: <%= ENV.fetch("DATABASE_URL") %>
+    # Use DATABASE_URL if provided (for Render, Heroku, etc.)
+    # Fallback to localhost for local production testing
+    url: <%= ENV["DATABASE_URL"] || "postgresql://#{ENV['USER'] || 'postgres'}@localhost:5432/task_manager_api_production" %>
   cache:
     <<: *primary_production
-    url: <%= ENV.fetch("CACHE_DATABASE_URL") { ENV.fetch("DATABASE_URL").sub(%r{/[^/]+$}, "/task_manager_api_production_cache") } %>
+    url: <%= ENV["CACHE_DATABASE_URL"] || (ENV["DATABASE_URL"] ? ENV["DATABASE_URL"].sub(%r{/[^/]+$}, "/task_manager_api_production_cache") : "postgresql://#{ENV['USER'] || 'postgres'}@localhost:5432/task_manager_api_production_cache") %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    url: <%= ENV.fetch("QUEUE_DATABASE_URL") { ENV.fetch("DATABASE_URL").sub(%r{/[^/]+$}, "/task_manager_api_production_queue") } %>
+    url: <%= ENV["QUEUE_DATABASE_URL"] || (ENV["DATABASE_URL"] ? ENV["DATABASE_URL"].sub(%r{/[^/]+$}, "/task_manager_api_production_queue") : "postgresql://#{ENV['USER'] || 'postgres'}@localhost:5432/task_manager_api_production_queue") %>
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    url: <%= ENV.fetch("CABLE_DATABASE_URL") { ENV.fetch("DATABASE_URL").sub(%r{/[^/]+$}, "/task_manager_api_production_cable") } %>
+    url: <%= ENV["CABLE_DATABASE_URL"] || (ENV["DATABASE_URL"] ? ENV["DATABASE_URL"].sub(%r{/[^/]+$}, "/task_manager_api_production_cable") : "postgresql://#{ENV['USER'] || 'postgres'}@localhost:5432/task_manager_api_production_cable") %>
     migrations_paths: db/cable_migrate

@@ -1,7 +1,8 @@
 require "sidekiq/web"
 
 Rails.application.routes.draw do
-  if Rails.env.development? || Rails.env.test?
+  # Enable Swagger/API docs in development, test, or when ENABLE_API_DOCS is set
+  if Rails.env.development? || Rails.env.test? || ENV["ENABLE_API_DOCS"] == "true"
     mount Rswag::Ui::Engine => '/api-docs'
     mount Rswag::Api::Engine => '/api-docs'
   end
