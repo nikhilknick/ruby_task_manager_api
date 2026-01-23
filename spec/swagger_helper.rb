@@ -16,7 +16,8 @@ RSpec.configure do |config|
       },
       servers: [
         {
-          url: "http://localhost:3000"
+          url: ENV.fetch("API_BASE_URL", "http://localhost:3000"),
+          description: Rails.env.production? ? "Production server" : "Development server"
         }
       ],
       paths: {},

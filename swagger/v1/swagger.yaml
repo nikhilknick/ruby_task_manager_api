@@ -5,7 +5,10 @@ info:
   version: v1
   description: API documentation for Task Manager
 servers:
+- url: https://ruby-task-manager-api.onrender.com
+  description: Production server
 - url: http://localhost:3000
+  description: Development server
 paths:
   "/signup":
     post:
