@@ -1,16 +1,16 @@
 require "swagger_helper"
 
-RSpec.describe "Tasks API", openapi_spec: "v1/swagger.yaml" do
+RSpec.describe "API V1 Tasks", openapi_spec: "v1/swagger.yaml" do
   let(:Authorization) { "Bearer valid.jwt.token" }
   let(:user) { create(:user) }
   let(:task_instance) { create(:task, user: user) }
 
   # =========================
-  # GET /tasks
+  # GET /api/v1/tasks
   # =========================
-  path "/tasks" do
+  path "/api/v1/tasks" do
     get "List tasks" do
-      tags "Tasks"
+      tags "API V1 Tasks"
       produces "application/json"
       security [ bearerAuth: [] ]
 
@@ -50,10 +50,10 @@ RSpec.describe "Tasks API", openapi_spec: "v1/swagger.yaml" do
     end
 
     # =========================
-    # POST /tasks
+    # POST /api/v1/tasks
     # =========================
     post "Create task" do
-      tags "Tasks"
+      tags "API V1 Tasks"
       consumes "application/json"
       produces "application/json"
       security [ bearerAuth: [] ]
@@ -103,16 +103,62 @@ RSpec.describe "Tasks API", openapi_spec: "v1/swagger.yaml" do
   end
 
   # =========================
-  # /tasks/{id}
+  # GET /api/v1/tasks/statistics
   # =========================
-  path "/tasks/{id}" do
+  path "/api/v1/tasks/statistics" do
+    get "Get task statistics" do
+      tags "API V1 Tasks"
+      produces "application/json"
+      security [ bearerAuth: [] ]
+
+      response "200", "statistics retrieved" do
+        let(:Authorization) { auth_headers(user)["Authorization"] }
+        before { create_list(:task, 3, user: user) }
+        schema type: :object,
+               properties: {
+                 total: { type: :integer },
+                 by_status: {
+                   type: :object,
+                   properties: {
+                     todo: { type: :integer },
+                     in_progress: { type: :integer },
+                     completed: { type: :integer }
+                   }
+                 },
+                 by_priority: {
+                   type: :object,
+                   properties: {
+                     low: { type: :integer },
+                     medium: { type: :integer },
+                     high: { type: :integer }
+                   }
+                 },
+                 overdue: { type: :integer },
+                 due_today: { type: :integer },
+                 due_this_week: { type: :integer }
+               }
+
+        run_test!
+      end
+
+      response "401", "unauthorized" do
+        let(:Authorization) { nil }
+        run_test!
+      end
+    end
+  end
+
+  # =========================
+  # /api/v1/tasks/{id}
+  # =========================
+  path "/api/v1/tasks/{id}" do
     parameter name: :id, in: :path, type: :integer
 
     # =========================
-    # GET /tasks/{id}
+    # GET /api/v1/tasks/{id}
     # =========================
     get "Show task" do
-      tags "Tasks"
+      tags "API V1 Tasks"
       produces "application/json"
       security [ bearerAuth: [] ]
 
@@ -136,10 +182,10 @@ RSpec.describe "Tasks API", openapi_spec: "v1/swagger.yaml" do
     end
 
     # =========================
-    # PUT /tasks/{id}
+    # PUT /api/v1/tasks/{id}
     # =========================
     put "Update task" do
-      tags "Tasks"
+      tags "API V1 Tasks"
       consumes "application/json"
       produces "application/json"
       security [ bearerAuth: [] ]
@@ -178,10 +224,10 @@ RSpec.describe "Tasks API", openapi_spec: "v1/swagger.yaml" do
     end
 
     # =========================
-    # DELETE /tasks/{id}
+    # DELETE /api/v1/tasks/{id}
     # =========================
     delete "Delete task" do
-      tags "Tasks"
+      tags "API V1 Tasks"
       security [ bearerAuth: [] ]
 
       response "204", "task deleted" do

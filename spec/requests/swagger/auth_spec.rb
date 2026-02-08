@@ -1,6 +1,10 @@
 require "swagger_helper"
 
 RSpec.describe "Authentication API", openapi_spec: "v1/swagger.yaml" do
+  let(:user) { build(:user) }
+  # Auth endpoints don't require Authorization header
+  let(:Authorization) { nil }
+  
     path "/signup" do
       post "User signup" do
         tags "Auth"
@@ -35,10 +39,12 @@ RSpec.describe "Authentication API", openapi_spec: "v1/swagger.yaml" do
         }
   
         response "201", "user created" do
+          let(:payload) { { user: attributes_for(:user) } }
           run_test!
         end
   
         response "422", "invalid request" do
+          let(:payload) { { user: { email: "", password: "" } } }
           run_test!
         end
       end
@@ -60,6 +66,8 @@ RSpec.describe "Authentication API", openapi_spec: "v1/swagger.yaml" do
       }
 
       response "200", "login successful" do
+        let(:user) { create(:user, email: "test@example.com", password: "password123") }
+        let(:auth) { { email: user.email, password: "password123" } }
         schema type: :object,
                properties: {
                  token: { type: :string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
@@ -69,6 +77,7 @@ RSpec.describe "Authentication API", openapi_spec: "v1/swagger.yaml" do
       end
 
       response "401", "invalid credentials" do
+        let(:auth) { { email: "wrong@example.com", password: "wrongpassword" } }
         run_test!
       end
     end
