@@ -12,7 +12,7 @@ RSpec.describe "Tasks API", type: :request do
     end
 
     it "returns only current user's tasks" do
-      get "/tasks", headers: headers
+      get tasks_path, headers: headers
 
       json = JSON.parse(response.body)
 
@@ -22,7 +22,7 @@ RSpec.describe "Tasks API", type: :request do
     end
 
     it "returns unauthorized without token" do
-      get "/tasks"
+      get tasks_path
 
       expect(response).to have_http_status(:unauthorized)
     end
@@ -32,7 +32,7 @@ RSpec.describe "Tasks API", type: :request do
     it "returns the task for the current user" do
       task = create(:task, user: user)
 
-      get "/tasks/#{task.id}", headers: headers
+      get task_path(task), headers: headers
 
       body = JSON.parse(response.body)
 
@@ -44,7 +44,7 @@ RSpec.describe "Tasks API", type: :request do
   describe "POST /tasks" do
     it "creates a task for the authenticated user" do
       expect {
-        post "/tasks",
+        post tasks_path,
              params: {
                task: {
                  title: "New Task",
@@ -65,14 +65,14 @@ RSpec.describe "Tasks API", type: :request do
 
     it "enqueues email job on task creation" do
       expect {
-        post "/tasks",
+        post tasks_path,
              params: { task: attributes_for(:task) },
              headers: headers
       }.to have_enqueued_job(TaskNotificationJob)
     end
 
     it "returns 422 for invalid task" do
-      post "/tasks",
+      post tasks_path,
            params: {
              task: {
                title: "",
@@ -90,7 +90,7 @@ RSpec.describe "Tasks API", type: :request do
     it "updates the user's task" do
       task = create(:task, user: user)
 
-      put "/tasks/#{task.id}",
+      put task_path(task),
           params: {
             task: { title: "Updated Task" }
           },
@@ -106,7 +106,7 @@ RSpec.describe "Tasks API", type: :request do
       task = create(:task, user: user)
 
       expect {
-        delete "/tasks/#{task.id}", headers: headers
+        delete task_path(task), headers: headers
       }.to change(Task, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
@@ -117,7 +117,7 @@ RSpec.describe "Tasks API", type: :request do
     it "does not allow access to another user's task" do
       task = create(:task, user: other_user)
 
-      get "/tasks/#{task.id}", headers: headers
+      get task_path(task), headers: headers
 
       expect(response).to have_http_status(:not_found)
     end
@@ -129,7 +129,7 @@ RSpec.describe "Tasks API", type: :request do
     end
 
     it "returns paginated results with metadata" do
-      get "/tasks", params: { page: 1, per: 5 }, headers: headers
+      get tasks_path, params: { page: 1, per: 5 }, headers: headers
 
       body = JSON.parse(response.body)
 
@@ -149,10 +149,10 @@ RSpec.describe "Tasks API", type: :request do
     end
   
     it "returns only tasks with given status" do
-      get "/tasks", params: { status: "completed" }, headers: headers
-  
+      get tasks_path, params: { status: "completed" }, headers: headers
+
       body = JSON.parse(response.body)
-  
+
       expect(response).to have_http_status(:ok)
       expect(body["data"].length).to eq(1)
       expect(body["data"].first["status"]).to eq("completed")
@@ -167,10 +167,10 @@ RSpec.describe "Tasks API", type: :request do
     end
   
     it "returns only tasks with given priority" do
-      get "/tasks", params: { priority: "high" }, headers: headers
-  
+      get tasks_path, params: { priority: "high" }, headers: headers
+
       body = JSON.parse(response.body)
-  
+
       expect(response).to have_http_status(:ok)
       expect(body["data"].length).to eq(1)
       expect(body["data"].first["priority"]).to eq("high")
@@ -185,10 +185,10 @@ RSpec.describe "Tasks API", type: :request do
     end
   
     it "returns tasks matching search query" do
-      get "/tasks", params: { q: "deploy" }, headers: headers
-  
+      get tasks_path, params: { q: "deploy" }, headers: headers
+
       body = JSON.parse(response.body)
-  
+
       expect(response).to have_http_status(:ok)
       expect(body["data"].length).to eq(1)
       expect(body["data"].first["title"]).to include("Deploy")
@@ -203,13 +203,13 @@ RSpec.describe "Tasks API", type: :request do
     end
   
     it "sorts tasks by priority ascending" do
-      get "/tasks",
+      get tasks_path,
           params: { sort_by: "priority", order: "asc" },
           headers: headers
-  
+
       body = JSON.parse(response.body)
       priorities = body["data"].map { |t| t["priority"] }
-  
+
       expect(response).to have_http_status(:ok)
       expect(priorities).to eq(%w[low high])
     end
@@ -220,10 +220,10 @@ RSpec.describe "Tasks API", type: :request do
     it "returns consistent task attributes" do
       task = create(:task, user: user)
   
-      get "/tasks/#{task.id}", headers: headers
-  
+      get task_path(task), headers: headers
+
       body = JSON.parse(response.body)
-  
+
       expect(body.keys).to contain_exactly(
         "id",
         "title",
@@ -234,6 +234,42 @@ RSpec.describe "Tasks API", type: :request do
         "created_at",
         "updated_at"
       )
+    end
+  end
+
+  # Statistics endpoint spec
+  describe "GET /tasks/statistics" do
+    before do
+      create(:task, user: user, status: "todo", priority: "low")
+      create(:task, user: user, status: "in_progress", priority: "medium")
+      create(:task, user: user, status: "completed", priority: "high")
+      # Create task and then update due_date to bypass validation for testing overdue
+      overdue_task = create(:task, user: user, status: "completed", priority: "high")
+      overdue_task.update_column(:due_date, Date.yesterday)
+      create(:task, user: user, status: "todo", priority: "low", due_date: Date.today)
+    end
+
+    it "returns task statistics" do
+      get statistics_tasks_path, headers: headers
+
+      body = JSON.parse(response.body)
+
+      expect(response).to have_http_status(:ok)
+      expect(body["total"]).to eq(5)
+      expect(body["by_status"]["todo"]).to eq(2)
+      expect(body["by_status"]["in_progress"]).to eq(1)
+      expect(body["by_status"]["completed"]).to eq(2)
+      expect(body["by_priority"]["low"]).to eq(2)
+      expect(body["by_priority"]["medium"]).to eq(1)
+      expect(body["by_priority"]["high"]).to eq(2)
+      expect(body["overdue"]).to eq(1)
+      expect(body["due_today"]).to eq(1)
+    end
+
+    it "returns unauthorized without token" do
+      get statistics_tasks_path
+
+      expect(response).to have_http_status(:unauthorized)
     end
   end
   
