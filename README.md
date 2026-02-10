@@ -6,6 +6,12 @@ A Rails API application for managing tasks. This is a RESTful API built with Rub
 
 This is a task_manager_api project built with Ruby on Rails, designed to handle task management functionality through a clean API interface.
 
+## Features
+
+- RESTful API endpoints for task operations
+- User authentication and authorization
+- Background job processing
+
 ## Technology Stack
 
 - Ruby on Rails (API mode)
